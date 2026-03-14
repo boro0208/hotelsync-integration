@@ -29,11 +29,11 @@ Skripta radi sledeće:
 6. Update postojećih zapisa ako se payload promeni
 7. Generisanje lokalnih kodova
 
-Room code:
-HS-{ROOM_ID}-{slug_room_name}
+    Room code:
+    HS-{ROOM_ID}-{slug_room_name}
 
-Rate plan code:
-RP-{RATE_PLAN_ID}-{meal_plan}
+    Rate plan code:
+    RP-{RATE_PLAN_ID}-{meal_plan}
 
 8. Logging događaja u log fajl
 
@@ -54,7 +54,7 @@ Skripta radi sledeće:
 5. Skip rezervacija bez promena
 6. Generisanje lock_id u formatu:
 
-LOCK-{reservation_id}-{arrival_date}
+    LOCK-{reservation_id}-{arrival_date}
 
 7. Mapiranje povezanih soba u tabelu reservation_rooms
 8. Mapiranje povezanih rate planova u tabelu reservation_rate_plans
@@ -92,7 +92,7 @@ Planirana logika:
 2. generisati invoice payload (guest, datumi, line items, total)
 3. generisati invoice broj u formatu:
 
-HS-INV-YYYY-000001
+    HS-INV-YYYY-000001
 
 4. upisati fakturu u tabelu `invoice_queue`
 5. implementirati retry mehanizam (do 5 pokušaja) ako slanje fakture ne uspe
@@ -123,42 +123,48 @@ Na taj način bi se obradili događaji:
 
 # Struktura projekta
 
-sync_catalog.php CLI skripta za katalog sync
-sync_reservations.php CLI skripta za import rezervacija
-update_reservation.php CLI skripta za update jedne rezervacije
-db.php MySQL konekcija
-api_client.php komunikacija sa HotelSync API
-helpers.php pomoćne funkcije
-logger.php logging sistem
-config.php / config.local.php lokalna konfiguracija
-config.example.php primer konfiguracije
-database.sql SQL schema za bazu
+- sync_catalog.php → CLI skripta za katalog sync
+- sync_reservations.php → CLI skripta za import rezervacija
+- update_reservation.php → CLI skripta za update jedne rezervacije
+
+- db.php → MySQL konekcija
+- api_client.php → komunikacija sa HotelSync API
+- helpers.php → pomoćne funkcije
+- logger.php → logging sistem
+
+- config.local.php → lokalna konfiguracija (nije u repo)
+- config.example.php → primer konfiguracije
+
+- database.sql → SQL schema za bazu
 
 ---
 
 # Pokretanje projekta
 
-1.  Importovati bazu iz `database.sql`
+1.  Import baze
 
-2.  Podesiti konfiguraciju u fajlu:
-    config.local.php
+    Importovati bazu iz fajla: database.sql
 
-Tu se nalaze:
+2.  Podesiti konfiguraciju
 
-- MySQL konekcioni podaci
-- HotelSync API kredencijali
+    Kopirati konfiguraciju: config.example.php → config.php
 
-3. Pokretanje Task 1
+    U config.local.php se nalaze:
 
-php sync_catalog.php
+        MySQL konekcioni podaci
+        HotelSync API kredencijali
 
-4. Pokretanje Task 2
+3.  Pokretanje Task 1
 
-php sync_reservations.php --from=2026-01-01 --to=2026-01-31
+    php sync_catalog.php
 
-5. Pokretanje Task 3
+4.  Pokretanje Task 2
 
-php update_reservation.php --reservation_id=XXXX
+    php sync_reservations.php --from=2026-01-01 --to=2026-01-31
+
+5.  Pokretanje Task 3
+
+    php update_reservation.php --reservation_id=XXXX
 
 ---
 
@@ -178,9 +184,8 @@ php update_reservation.php --reservation_id=XXXX
 
 # Napomena
 
-Task 1, Task 2 i Task 3 su implementirani.
+Task 1, Task 2 i Task 3 su implementirani i funkcionalni.
 
-Task 4 – Invoice Creation  
-Task 5 – Webhook Endpoint
+Za Task 4 – **Invoice Creation** i Task 5 – **Webhook Endpoint** postoji početni skeleton u kodu (CLI skripta i struktura endpointa), ali kompletna logika implementacije nije završena.
 
-nisu još implementirani u kodu. Za njih je moguće dalje proširenje postojećeg rešenja kroz dodatne queue / webhook / retry mehanizme.
+U README fajlu je opisan planirani pristup implementaciji ovih taskova.
