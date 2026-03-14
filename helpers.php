@@ -138,6 +138,7 @@ function syncReservationRooms(mysqli $connection, int $localReservationId, array
         $insertSql = "
             INSERT INTO reservation_rooms (reservation_id, room_id, quantity)
             VALUES (?, ?, ?)
+            ON DUPLICATE KEY UPDATE updated_at = NOW()
         ";
 
         $insertStmt = mysqli_prepare($connection, $insertSql);
@@ -269,4 +270,55 @@ function syncReservationRatePlans(mysqli $connection, int $localReservationId, a
 
         mysqli_stmt_close($insertStmt);
     }
+}
+
+
+function insertAuditLog(
+    mysqli $connection,
+    int $hsReservationId,
+    string $eventType,
+    ?string $oldPayloadHash = null,
+    ?string $newPayloadHash = null,
+    ?string $message = null
+): void {
+    $sql = "
+        INSERT INTO audit_logs (
+            hs_reservation_id,
+            event_type,
+            old_payload_hash,
+            new_payload_hash,
+            message
+        ) VALUES (?, ?, ?, ?, ?)
+    ";
+
+    $stmt = mysqli_prepare($connection, $sql);
+
+    if (!$stmt) {
+        writeLog(
+            'DB_ERROR',
+            'Prepare failed for audit log insert: ' . mysqli_error($connection),
+            (string)$hsReservationId
+        );
+        return;
+    }
+
+    mysqli_stmt_bind_param(
+        $stmt,
+        'issss',
+        $hsReservationId,
+        $eventType,
+        $oldPayloadHash,
+        $newPayloadHash,
+        $message
+    );
+
+    if (!mysqli_stmt_execute($stmt)) {
+        writeLog(
+            'DB_ERROR',
+            'Audit log insert failed: ' . mysqli_stmt_error($stmt),
+            (string)$hsReservationId
+        );
+    }
+
+    mysqli_stmt_close($stmt);
 }

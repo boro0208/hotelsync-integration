@@ -1,7 +1,6 @@
 <?php
 
-// $config = require __DIR__ . '/config.php';
-$config = require __DIR__ . '/config.local.php';
+$config = require __DIR__ . '/config.php';
 
 $dbConfig = $config['db'];
 

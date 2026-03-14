@@ -184,3 +184,15 @@ function fetchReservations(string $token, string $key, int $propertyId, string $
 
     return apiPostRequest('/reservation/data/reservations', $payload, false);
 }
+
+function fetchReservationById(string $token, string $key, int $propertyId, int $reservationId): array
+{
+    $payload = [
+        'token' => $token,
+        'key' => $key,
+        'id_properties' => $propertyId,
+        'id_reservations' => $reservationId,
+    ];
+
+    return apiPostRequest('/reservation/data/reservation', $payload, false);
+}

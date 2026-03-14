@@ -30,11 +30,9 @@ Skripta radi sledeće:
 7. Generisanje lokalnih kodova
 
 Room code:
-
 HS-{ROOM_ID}-{slug_room_name}
 
 Rate plan code:
-
 RP-{RATE_PLAN_ID}-{meal_plan}
 
 8. Logging događaja u log fajl
@@ -64,15 +62,76 @@ LOCK-{reservation_id}-{arrival_date}
 
 ---
 
+## Task 3 – Reservation Update / Cancel
+
+CLI skripta:
+
+php update_reservation.php --reservation_id=XXXX
+
+Skripta radi sledeće:
+
+1. Preuzimanje jedne rezervacije iz HotelSync API-ja
+2. Provera da li rezervacija postoji lokalno
+3. Poređenje payload hash vrednosti
+4. Ako postoji promena – ažuriranje lokalnih podataka
+5. Ažuriranje povezanih soba i rate planova
+6. Upis događaja u audit_logs tabelu
+7. Ako je rezervacija otkazana, ostaje u bazi i beleži se audit događaj
+
+---
+
+# Task 4 – Invoice Creation (Planned)
+
+Invoice generation bi bio implementiran kroz posebnu CLI skriptu:
+
+php generate_invoice.php --reservation_id=XXXX
+
+Planirana logika:
+
+1. učitati rezervaciju iz lokalne baze
+2. generisati invoice payload (guest, datumi, line items, total)
+3. generisati invoice broj u formatu:
+
+HS-INV-YYYY-000001
+
+4. upisati fakturu u tabelu `invoice_queue`
+5. implementirati retry mehanizam (do 5 pokušaja) ako slanje fakture ne uspe
+
+---
+
+# Task 5 – Webhook Endpoint (Planned)
+
+Webhook endpoint bi bio implementiran kao:
+
+POST /webhooks/otasync.php
+
+Planirana logika:
+
+1. primiti webhook payload
+2. validirati podatke
+3. izračunati payload hash
+4. proveriti da li je event već obrađen
+5. ažurirati rezervaciju u lokalnoj bazi
+
+Na taj način bi se obradili događaji:
+
+- nova rezervacija
+- izmena rezervacije
+- otkazivanje rezervacije
+
+---
+
 # Struktura projekta
 
-sync_catalog.php CLI skripta za katalog sync  
-sync_reservations.php CLI skripta za import rezervacija  
-db.php MySQL konekcija  
-api_client.php komunikacija sa HotelSync API  
-helpers.php pomoćne funkcije  
-logger.php logging sistem  
-config.php konfiguracija  
+sync_catalog.php CLI skripta za katalog sync
+sync_reservations.php CLI skripta za import rezervacija
+update_reservation.php CLI skripta za update jedne rezervacije
+db.php MySQL konekcija
+api_client.php komunikacija sa HotelSync API
+helpers.php pomoćne funkcije
+logger.php logging sistem
+config.php / config.local.php lokalna konfiguracija
+config.example.php primer konfiguracije
 database.sql SQL schema za bazu
 
 ---
@@ -80,26 +139,26 @@ database.sql SQL schema za bazu
 # Pokretanje projekta
 
 1.  Importovati bazu iz `database.sql`
-2.  Podesiti konfiguraciju u fajlu:
 
-config.php
+2.  Podesiti konfiguraciju u fajlu:
+    config.local.php
 
 Tu se nalaze:
 
 - MySQL konekcioni podaci
 - HotelSync API kredencijali
 
----
-
 3. Pokretanje Task 1
 
 php sync_catalog.php
 
----
-
 4. Pokretanje Task 2
 
 php sync_reservations.php --from=2026-01-01 --to=2026-01-31
+
+5. Pokretanje Task 3
+
+php update_reservation.php --reservation_id=XXXX
 
 ---
 
@@ -111,18 +170,17 @@ php sync_reservations.php --from=2026-01-01 --to=2026-01-31
 - Reservation import
 - Reservation to room mapping
 - Reservation to rate plan mapping
+- Reservation update / no-change detection
+- Audit logging
 - Insert / update / skip logika na osnovu payload_hash
 
 ---
 
 # Napomena
 
-Task 1 i Task 2 su implementirani.
+Task 1, Task 2 i Task 3 su implementirani.
 
-Ostali taskovi:
-
-Task 3 – Reservation Update / Cancel  
 Task 4 – Invoice Creation  
 Task 5 – Webhook Endpoint
 
-biće implementirani u narednim koracima.
+nisu još implementirani u kodu. Za njih je moguće dalje proširenje postojećeg rešenja kroz dodatne queue / webhook / retry mehanizme.

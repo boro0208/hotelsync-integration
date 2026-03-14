@@ -49,6 +49,7 @@ CREATE TABLE reservation_rooms (
     room_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     UNIQUE KEY uniq_reservation_room (reservation_id, room_id),
     CONSTRAINT fk_reservation_rooms_reservation
         FOREIGN KEY (reservation_id) REFERENCES reservations(id)
@@ -70,4 +71,14 @@ CREATE TABLE reservation_rate_plans (
     CONSTRAINT fk_reservation_rate_plans_rate_plan
         FOREIGN KEY (rate_plan_id) REFERENCES rate_plans(id)
         ON DELETE CASCADE
+);
+
+CREATE TABLE audit_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    hs_reservation_id INT NOT NULL,
+    event_type VARCHAR(100) NOT NULL,
+    old_payload_hash VARCHAR(64) NULL,
+    new_payload_hash VARCHAR(64) NULL,
+    message TEXT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
